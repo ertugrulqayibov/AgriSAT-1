@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <title>AgriSat - Kənd Təsərrüfatı Sİ Sistemi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Qarabağ əkinçilik məlumat bazası və Təbii Dil Emalı texnologiyası ilə dəstəklənən kənd təsərrüfatı AI köməkçisi">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-green: #2e7d32;
+      --light-green: #4caf50;
+      --bg-green: #e8f5e8;
+      --card-bg: #f7faf7;
+      --hover-green: #c8e6c9;
+      --text-dark: #1a1a1a;
+      --text-secondary: #3a4d3a;
+      --border-color: #b2dfdb;
+      --shadow-light: rgba(46, 125, 50, 0.08);
+      --shadow-medium: rgba(46, 125, 50, 0.12);
+      --gradient-bg: linear-gradient(135deg, #e0f7fa 0%, #f1f8e9 50%, #e8f5e8 100%);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gradient-bg);
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+      max-width: 1400px;
+      margin: 0 auto;
+      gap: 2rem;
+      padding: 1rem;
+    }
+
+    .sidebar {
+      width: 350px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px var(--shadow-light);
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      height: fit-content;
+      position: sticky;
+      top: 1rem;
+    }
+
+    .sidebar h2 {
+      color: var(--primary-green);
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav button {
+      width: 100%;
+      background: var(--card-bg);
+      color: var(--text-secondary);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .nav button:hover::before {
+      left: 100%;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: var(--hover-green);
+      border-color: var(--light-green);
+      color: var(--primary-green);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px var(--shadow-medium);
+    }
+
+    .expander {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .expander summary {
+      font-weight: 600;
+      color: var(--primary-green);
+      cursor: pointer;
+      padding: 1rem 1.2rem;
+      background: var(--bg-green);
+      transition: background 0.3s ease;
+      list-style: none;
+      position: relative;
+    }
+
+    .expander summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .expander summary::after {
+      content: '▼';
+      position: absolute;
+      right: 1.2rem;
+      transition: transform 0.3s ease;
+      font-size: 0.8rem;
+    }
+
+    .expander[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .expander summary:hover {
+      background: var(--hover-green);
+    }
+
+    .expander-content {
+      padding: 1.2rem;
+      background: white;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .expander-content ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    .expander-content li {
+      margin-bottom: 0.4rem;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .expander-content li:hover {
+      color: var(--primary-green);
+    }
+
+    .server-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .server-actions button {
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      cursor: not-allowed;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+
+    .main-content {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 8px 32px var(--shadow-light);
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 2rem);
+    }
+
+    .agrisat-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .agrisat-logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--light-green), var(--primary-green));
+      box-shadow: 0 8px 24px var(--shadow-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .agrisat-logo::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+      100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    }
+
+    .agrisat-logo img {
+      width: 90%;
+      height: 90%;
+      border-radius: 16px;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .agrisat-title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary-green);
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .agrisat-desc {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 600px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    .example-prompts {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .example-prompts::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-green), var(--light-green));
+    }
+
+    .example-prompts b {
+      color: var(--primary-green);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .example-prompts ul {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .example-prompts li {
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0.2rem 0;
+    }
+
+    .example-prompts li:hover {
+      color: var(--primary-green);
+      transform: translateX(4px);
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+    }
+
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      overflow-y: auto;
+      max-height: 60vh;
+      padding: 1rem;
+      border-radius: 12px;
+      background: rgba(248, 250, 248, 0.5);
+      border: 1px solid var(--border-color);
+    }
+
+    .chat-message {
+      padding: 1rem 1.2rem;
+      border-radius: 16px;
+      max-width: 85%;
+      word-wrap: break-word;
+      position: relative;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .chat-message:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .chat-message .message-content {
+      line-height: 1.5;
+    }
+
+    .chat-message .message-content p {
+      margin: 0.5rem 0;
+    }
+
+    .chat-message .message-content pre {
+      margin: 0.8rem 0;
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .chat-message .message-content code {
+      background: rgba(0,0,0,0.05);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .chat-message .message-header {
+      opacity: 0.7;
+      font-size: 0.8rem;
+      margin-bottom: 0.4rem;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-message.user {
+      background: linear-gradient(135deg, var(--light-green), #66bb6a);
+      color: white;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .chat-message.assistant {
+      background: white;
+      color: var(--text-dark);
+      align-self: flex-start;
+      border: 1px solid var(--border-color);
+    }
+
+    .chat-message.user::before,
+    .chat-message.assistant::before {
+      font-size: 1.2rem;
+      margin-right: 0.5rem;
+    }
+
+    .chat-input-container {
+      position: relative;
+      margin-top: auto;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 2px solid var(--border-color);
+      transition: border-color 0.3s ease;
+    }
+
+    .chat-form:focus-within {
+      border-color: var(--light-green);
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      background: white;
+      color: var(--text-dark);
+      outline: none;
+      font-family: inherit;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--shadow-medium);
+    }
+
+    .send-btn:active {
+      transform: translateY(0);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .typing-indicator {
+      opacity: 0;
+      padding: 1rem;
+      font-style: italic;
+      color: var(--text-secondary);
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .typing-indicator.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      gap: 0.2rem;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--light-green);
+      opacity: 0.6;
+    }
+
+    .typing-dot:nth-child(1) { animation: typingDot 1s infinite 0s; }
+    .typing-dot:nth-child(2) { animation: typingDot 1s infinite 0.2s; }
+    .typing-dot:nth-child(3) { animation: typingDot 1s infinite 0.4s; }
+
+    @keyframes typingDot {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .chat-message {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: messageAppear 0.5s ease forwards;
+    }
+
+    @keyframes messageAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .send-btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .send-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120%;
+      height: 120%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease;
+    }
+
+    .send-btn:active::after {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      transition: 0s;
+    }
+
+    .status-bar {
+      padding: 0.5rem 1rem;
+      background: var(--bg-green);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--primary-green);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--light-green);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.5rem;
+      }
+
+      .sidebar {
+        width: 100%;
+        position: static;
+        order: 2;
+      }
+
+      .main-content {
+        order: 1;
+        min-height: auto;
+      }
+
+      .agrisat-title {
+        font-size: 2.2rem;
+      }
+
+      .chat-area {
+        max-height: 50vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 0.25rem;
+      }
+
+      .sidebar,
+      .main-content {
+        padding: 1.5rem;
+        border-radius: 12px;
+      }
+
+      .agrisat-title {
+        font-size: 2rem;
+      }
+
+      .chat-message {
+        max-width: 95%;
+      }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      border-top-color: var(--light-green);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="nav">
+        <button class="active" onclick="showPage('agrisat')" aria-label="AgriSat Ana Səhifə">
+          🌾 AgriSat
+        </button>
+        <button onclick="showPage('monitoring')" aria-label="Qarabağ Əkin Monitorinqi" class="monitoring-btn">
+          <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+            <span style="display: flex; align-items: center; gap: 0.5rem;">
+              🛰️ Qarabağ Əkin Monitorinqi
+            </span>
+            <span style="font-size: 0.8rem; opacity: 0.8">
+              Peyk məlumatları və vegetasiya indeksləri
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <details class="expander" open>
+        <summary>🤖 Nümunə suallar</summary>
+        <div class="expander-content">
+          <ul>
+            <li onclick="fillQuestion('Ağdamda hansı məhsullar əkilə bilər?')">Ağdamda hansı məhsullar əkilə bilər?</li>
+            <li onclick="fillQuestion('Şuşada NDVI və NDWI göstəriciləri ən yüksək olan ərazilər hansılardır?')">Şuşada NDVI və NDWI göstəriciləri ən yüksək olan ərazilər hansılardır?</li>
+            <li onclick="fillQuestion('Baza strukturu və mövcud sahələr haqqında məlumat ver.')">Baza strukturu və mövcud sahələr haqqında məlumat ver.</li>
+            <li onclick="fillQuestion('NDRE və NPCRI göstəriciləri üzrə ən əlverişli əkin sahələri haradadır?')">NDRE və NPCRI göstəriciləri üzrə ən əlverişli əkin sahələri haradadır?</li>
+            <li onclick="fillQuestion('Qarabağda hansı əkin sahələri daha çox suvarma tələb edir?')">Qarabağda hansı əkin sahələri daha çox suvarma tələb edir?</li>
+            <li onclick="fillQuestion('NDVI və NDRE göstəriciləri ən yüksək olan ərazilərdə nə əkə bilərik?')">NDVI və NDRE göstəriciləri ən yüksək olan ərazilərdə nə əkə bilərik?</li>
+            <li onclick="fillQuestion('Hansı bölgədə NDPI ən yüksəkdir və orada nə əkə bilərik?')">Hansı bölgədə NDPI ən yüksəkdir və orada nə əkə bilərik?</li>
+            <li onclick="fillQuestion('Əkin üçün uyğun olan (NDVI yuxarı) ərazilər hansılardır?')">Əkin üçün uyğun olan (NDVI yuxarı) ərazilər hansılardır?</li>
+            <li onclick="fillQuestion('Qarabağda ən çox hansı məhsullar əkilir?')">Qarabağda ən çox hansı məhsullar əkilir?</li>
+            <li onclick="fillQuestion('2024-cü ildə Ağdamda hansı məhsullar əkilib?')">2024-cü ildə Ağdamda hansı məhsullar əkilib?</li>
+          </ul>
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary); padding: 0.8rem; background: rgba(46, 125, 50, 0.05); border-radius: 8px;">
+            <b>💡 Qeyd:</b> AgriSat NDVI, NDWI, NPCRI, NDRE, NDPI, NDKI və digər vegetasiya indekslərini nəzərə alaraq, bölgə və koordinat üzrə ən uyğun əkin tövsiyələrini təqdim edir. Ən yaxşı nəticə üçün suallarınızı dəqiq və indeks əsaslı verin.
+          </div>
+        </div>
+      </details>
+
+      <div>
+        <h2>🔧 Server əməliyyatları</h2>
+        <div class="server-actions">
+          <button disabled>Bütün əkin qeydlərini göstər</button>
+          <button disabled>Yeni əkin qeydi əlavə et</button>
+          <button disabled>Əkin qeydi yenilə</button>
+          <button disabled>Əkin statusunu göstər</button>
+        </div>
+        <div style="font-size: 0.85rem; color: #888; margin-top: 1rem; padding: 0.8rem; background: rgba(0,0,0,0.05); border-radius: 8px;">
+          ⚠️ Demo rejimi: Backend inteqrasiyası tələb olunur
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="status-bar">
+        <div class="status-dot"></div>
+        <span>Demo rejimi aktiv - Backend inteqrasiyası tələb olunur</span>
+      </div>
+
+      <div class="agrisat-header">
+        <div class="agrisat-logo">
+          🌾
+        </div>
+        <div class="agrisat-title">AgriSat</div>
+        <div class="agrisat-desc">
+          Kənd təsərrüfatı üzrə suallarınızı cavablandıran Süni İntellekt köməkçi.<br>
+          Qarabağ əkinçilik məlumat bazası və Təbii Dil Emalı texnologiyası ilə dəstəklənir.
+        </div>
+      </div>
+
+      <div class="example-prompts" id="example-prompts">
+        <b>💬 Nümunə suallar:</b>
+        <ul>
+          <li onclick="fillQuestion('Ağdamda hansı məhsullar əkilə bilər?')">Ağdamda hansı məhsullar əkilə bilər?</li>
+          <li onclick="fillQuestion('Şuşada NDVI və NDWI göstəriciləri ən yüksək olan ərazilər hansılardır?')">Şuşada NDVI və NDWI göstəriciləri ən yüksək olan ərazilər hansılardır?</li>
+          <li onclick="fillQuestion('Baza strukturu və mövcud sahələr haqqında məlumat ver.')">Baza strukturu və mövcud sahələr haqqında məlumat ver.</li>
+        </ul>
+        <span style="font-size: 0.9rem; color: var(--text-secondary);">
+          <b>💡 Məsləhət:</b> Ən yaxşı nəticə üçün suallarınızı dəqiq və indeks əsaslı verin.
+        </span>
+      </div>
+
+      <hr>
+
+      <div class="chat-container">
+        <div class="chat-area" id="chat-area">
+          <!-- Chat messages will appear here -->
+        </div>
+        <div class="typing-indicator" id="typing-indicator">
+          <span>AgriSat cavab hazırlayır</span>
+          <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+        <div class="chat-input-container">
+          <form class="chat-form" id="chat-form" autocomplete="off">
+            <input 
+              type="text" 
+              class="chat-input" 
+              id="chat-input" 
+              placeholder="Sualınızı yazın və Enter basın..." 
+              required
+              maxlength="500"
+            >
+            <button type="submit" class="send-btn" id="send-btn">
+              📤 Göndər
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+          <script>
+        // Utility functions for performance optimization
+        function debounce(func, wait) {
+          let timeout;
+          return function executedFunction(...args) {
+            const later = () => {
+              clearTimeout(timeout);
+              func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+          };
+        }
+
+        class VirtualScroller {
+          constructor(container, itemHeight = 80) {
+            this.container = container;
+            this.itemHeight = itemHeight;
+            this.items = [];
+            this.visibleItems = new Map();
+            this.lastScrollTop = 0;
+            
+            this.container.style.position = 'relative';
+            this.container.addEventListener('scroll', debounce(() => this.onScroll(), 10));
+          }
+          
+          setItems(items) {
+            this.items = items;
+            this.container.style.height = `${this.items.length * this.itemHeight}px`;
+            this.onScroll();
+          }
+          
+          onScroll() {
+            const scrollTop = this.container.scrollTop;
+            const containerHeight = this.container.clientHeight;
+            
+            const startIndex = Math.floor(scrollTop / this.itemHeight);
+            const endIndex = Math.min(
+              this.items.length,
+              Math.ceil((scrollTop + containerHeight) / this.itemHeight)
+            );
+            
+            // Remove items that are no longer visible
+            for (const [index, element] of this.visibleItems.entries()) {
+              if (index < startIndex || index >= endIndex) {
+                element.remove();
+                this.visibleItems.delete(index);
+              }
+            }
+            
+            // Add new visible items
+            for (let i = startIndex; i < endIndex; i++) {
+              if (!this.visibleItems.has(i)) {
+                const item = this.items[i];
+                const element = this.createItemElement(item, i);
+                this.container.appendChild(element);
+                this.visibleItems.set(i, element);
+              }
+            }
+          }
+          
+          createItemElement(item, index) {
+            const element = document.createElement('div');
+            element.className = `chat-message ${item.type}`;
+            element.style.position = 'absolute';
+            element.style.top = `${index * this.itemHeight}px`;
+            element.style.width = '100%';
+            element.innerHTML = `
+              <div class="message-header">${item.timestamp}</div>
+              <div class="message-content">${item.content}</div>
+            `;
+            return element;
+          }
+        }
+
+        // Local storage management
+        const ChatStorage = {
+          HISTORY_KEY: 'agrisat_chat_history',
+          PREFERENCES_KEY: 'agrisat_preferences',
+          CACHE_KEY: 'agrisat_response_cache',
+          MAX_HISTORY_ITEMS: 100,
+          CACHE_EXPIRY: 24 * 60 * 60 * 1000, // 24 hours
+
+          saveMessage(message) {
+            try {
+              const history = this.getChatHistory();
+              history.push({
+                ...message,
+                timestamp: new Date().toISOString()
+              });
+
+              // Keep only last MAX_HISTORY_ITEMS
+              if (history.length > this.MAX_HISTORY_ITEMS) {
+                history.splice(0, history.length - this.MAX_HISTORY_ITEMS);
+              }
+
+              localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history));
+            } catch (error) {
+              console.error('Error saving message:', error);
+            }
+          },
+
+          getChatHistory() {
+            try {
+              const history = localStorage.getItem(this.HISTORY_KEY);
+              return history ? JSON.parse(history) : [];
+            } catch (error) {
+              console.error('Error reading chat history:', error);
+              return [];
+            }
+          },
+
+          clearChatHistory() {
+            try {
+              localStorage.removeItem(this.HISTORY_KEY);
+            } catch (error) {
+              console.error('Error clearing chat history:', error);
+            }
+          },
+
+          setPreference(key, value) {
+            try {
+              const preferences = this.getPreferences();
+              preferences[key] = value;
+              localStorage.setItem(this.PREFERENCES_KEY, JSON.stringify(preferences));
+            } catch (error) {
+              console.error('Error saving preference:', error);
+            }
+          },
+
+          getPreferences() {
+            try {
+              const preferences = localStorage.getItem(this.PREFERENCES_KEY);
+              return preferences ? JSON.parse(preferences) : {};
+            } catch (error) {
+              console.error('Error reading preferences:', error);
+              return {};
+            }
+          },
+
+          cacheResponse(query, response) {
+            try {
+              const cache = this.getResponseCache();
+              cache[query] = {
+                response,
+                timestamp: Date.now()
+              };
+              localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+              console.error('Error caching response:', error);
+            }
+          },
+
+          getCachedResponse(query) {
+            try {
+              const cache = this.getResponseCache();
+              const cached = cache[query];
+              
+              if (!cached) return null;
+              
+              // Check if cache is expired
+              if (Date.now() - cached.timestamp > this.CACHE_EXPIRY) {
+                delete cache[query];
+                localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
+                return null;
+              }
+              
+              return cached.response;
+            } catch (error) {
+              console.error('Error reading cached response:', error);
+              return null;
+            }
+          },
+
+          getResponseCache() {
+            try {
+              const cache = localStorage.getItem(this.CACHE_KEY);
+              return cache ? JSON.parse(cache) : {};
+            } catch (error) {
+              console.error('Error reading response cache:', error);
+              return {};
+            }
+          }
+        };
+
+        // Enhanced SPA navigation with smooth transitions
+    function showPage(page) {
+      const mainContent = document.getElementById('main-content');
+      
+      if (page === 'agrisat') {
+        // Show main AgriSat interface
+        mainContent.style.opacity = '0';
+        setTimeout(() => {
+          mainContent.innerHTML = `
+            <div class="status-bar">
+              <div class="status-dot"></div>
+              <span>Demo rejimi aktiv - Backend inteqrasiyası tələb olunur</span>
+            </div>
+
+            <div class="agrisat-header">
+              <div class="agrisat-logo">🌾</div>
+              <div class="agrisat-title">AgriSat</div>
+              <div class="agrisat-desc">
+                Kənd təsərrüfatı üzrə suallarınızı cavablandıran Süni İntellekt köməkçi.<br>
+                Qarabağ əkinçilik məlumat bazası və Təbii Dil Emalı texnologiyası ilə dəstəklənir.
+              </div>
+            </div>
+
+            <div class="example-prompts" id="example-prompts">
+              <b>💬 Nümunə suallar:</b>
+              <ul>
+                <li onclick="fillQuestion('Ağdamda hansı məhsullar əkilə bilər?')">Ağdamda hansı məhsullar əkilə bilər?</li>
+                <li onclick="fillQuestion('Şuşada NDVI və NDWI göstəriciləri ən yüksək olan ərazilər hansılardır?')">Şuşada NDVI və NDWI göstəriciləri ən yüksək olan ərazilər hansılardır?</li>
+                <li onclick="fillQuestion('Baza strukturu və mövcud sahələr haqqında məlumat ver.')">Baza strukturu və mövcud sahələr haqqında məlumat ver.</li>
+              </ul>
+              <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                <b>💡 Məsləhət:</b> Ən yaxşı nəticə üçün suallarınızı dəqiq və indeks əsaslı verin.
+              </span>
+            </div>
+
+            <hr>
+
+            <div class="chat-container">
+              <div class="chat-area" id="chat-area"></div>
+              <div class="typing-indicator" id="typing-indicator">
+                <div class="loading"></div>
+                AgriSat cavab hazırlayır...
+              </div>
+              <div class="chat-input-container">
+                <form class="chat-form" id="chat-form" autocomplete="off">
+                  <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chat-input" 
+                    placeholder="Sualınızı yazın və Enter basın..." 
+                    required
+                    maxlength="500"
+                  >
+                  <button type="submit" class="send-btn" id="send-btn">📤 Göndər</button>
+                </form>
+              </div>
+            </div>
+          `;
+          initializeChat();
+          mainContent.style.opacity = '1';
+        }, 200);
+      } else {
+        // Show monitoring page
+        mainContent.style.opacity = '0';
+        setTimeout(() => {
+          mainContent.innerHTML = `
+            <div class="status-bar">
+              <div class="status-dot"></div>
+              <span>Monitoring sistemi hazırlanır</span>
+            </div>
+            
+            <div class="agrisat-header">
+              <div class="agrisat-logo">🛰️</div>
+              <div class="agrisat-title" style="font-size: 2.2rem;">Qarabağ Əkin Monitorinqi</div>
+              <div class="agrisat-desc">
+                Sentinel-2 peyk məlumatları əsasında Qarabağ bölgəsinin əkinçilik sahələrinin dəqiq monitorinqi və vegetasiya indekslərinin interaktiv analizi.
+              </div>
+            </div>
+
+            <!-- Map Container -->
+            <div style="background: var(--card-bg); border-radius: 16px; padding: 1rem; margin: 2rem 0; border: 2px solid var(--border-color);">
+              <div style="padding: 1rem; background: var(--bg-green); border-radius: 12px; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h3 style="color: var(--primary-green); margin: 0;">🗺️ Qarabağ Əkin Xəritəsi</h3>
+                  <div style="background: var(--primary-green); color: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.9rem;">
+                    Demo Versiya
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Map Placeholder -->
+              <div style="background: #f5f5f5; border-radius: 12px; height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1rem; border: 2px dashed #ddd;">
+                <div style="font-size: 4rem;">🗺️</div>
+                <p style="color: var(--text-secondary); max-width: 400px; text-align: center; margin: 0;">
+                  Xəritə yüklənir... Tezliklə burada Qarabağ bölgəsinin interaktiv əkin xəritəsi əks olunacaq.
+                </p>
+              </div>
+              
+              <!-- Map Controls -->
+              <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                <button style="flex: 1; min-width: 150px; padding: 0.8rem; border: none; border-radius: 8px; background: var(--bg-green); color: var(--primary-green); cursor: not-allowed; opacity: 0.7;">
+                  📍 Bölgə Seç
+                </button>
+                <button style="flex: 1; min-width: 150px; padding: 0.8rem; border: none; border-radius: 8px; background: var(--bg-green); color: var(--primary-green); cursor: not-allowed; opacity: 0.7;">
+                  📊 İndeksləri Göstər
+                </button>
+                <button style="flex: 1; min-width: 150px; padding: 0.8rem; border: none; border-radius: 8px; background: var(--bg-green); color: var(--primary-green); cursor: not-allowed; opacity: 0.7;">
+                  🔍 Ətraflı Analiz
+                </button>
+              </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="monitoring-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 2rem 0;">
+              <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌾</div>
+                <h4 style="color: var(--primary-green); margin: 0.5rem 0;">Əkin Sahələri</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Bütün Qarabağ ərazisində əkin sahələrinin monitorinqi</p>
+              </div>
+              <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                <h4 style="color: var(--primary-green); margin: 0.5rem 0;">Vegetasiya İndeksləri</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">NDVI, NDWI, NPCRI və digər indekslərin analizi</p>
+              </div>
+              <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                <h4 style="color: var(--primary-green); margin: 0.5rem 0;">Dəqiq Əkinçilik</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Peyk məlumatları əsasında optimal əkin planlaması</p>
+              </div>
+            </div>
+
+            <div style="background: var(--card-bg); border-radius: 16px; padding: 2rem; text-align: center; border: 2px dashed var(--border-color); margin-top: 2rem;">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">🗺️</div>
+              <h3 style="color: var(--primary-green); margin-bottom: 1rem;">İnteraktiv Xəritə və Analiz Platforması</h3>
+              <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+                Qarabağ ərazisində əkin sahələrinin real vaxt monitorinqi, vegetasiya indekslərinin vizual analizi və süni intellekt əsasında əkin tövsiyələri sistemi.
+              </p>
+              <!-- Development Status Section -->
+              <div style="background: rgba(255, 193, 7, 0.1); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                <h4 style="color: #f57c00; margin-bottom: 0.8rem;">🚧 Hazırlanma Prosesi</h4>
+                
+                <!-- Progress Timeline -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">
+                  <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: var(--primary-green); color: white; padding: 0.4rem; border-radius: 50%; font-size: 0.8rem;">✓</div>
+                    <div style="flex: 1;">
+                      <h5 style="color: var(--primary-green); margin: 0 0 0.2rem 0;">Analiz və Planlaşdırma</h5>
+                      <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">Tamamlanıb - Sentyabr 2025</p>
+                    </div>
+                  </div>
+                  
+                  <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: #f57c00; color: white; padding: 0.4rem; border-radius: 50%; font-size: 0.8rem;">⋯</div>
+                    <div style="flex: 1;">
+                      <h5 style="color: #f57c00; margin: 0 0 0.2rem 0;">Backend İnteqrasiyası</h5>
+                      <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">Hazırlanır - Oktyabr 2025</p>
+                    </div>
+                  </div>
+                  
+                  <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: #9e9e9e; color: white; padding: 0.4rem; border-radius: 50%; font-size: 0.8rem;">•</div>
+                    <div style="flex: 1;">
+                      <h5 style="color: var(--text-secondary); margin: 0 0 0.2rem 0;">Xəritə və Vizualizasiya</h5>
+                      <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">Növbəti Mərhələ - Noyabr 2025</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Current Status -->
+                <div style="margin-top: 1.5rem; padding: 1rem; background: white; border-radius: 8px; border: 1px dashed #f57c00;">
+                  <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                    <span style="color: #f57c00; font-weight: 600;">💡 Hazırkı Status:</span> 
+                    Backend sisteminin inteqrasiyası və peyk məlumatlarının emalı prosesi davam edir. Sistem tam istifadəyə veriləcək tarix:
+                  </p>
+                  <div style="margin-top: 1rem; text-align: center;">
+                    <div style="display: inline-block; padding: 0.5rem 1rem; background: var(--bg-green); border-radius: 8px; font-size: 0.9rem; color: var(--primary-green);">
+                      🔄 Planlaşdırılan başlama tarixi: Dekabr 2025
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <div style="background: var(--bg-green); padding: 1rem; border-radius: 8px; flex: 1; min-width: 200px; max-width: 300px;">
+                  <h5 style="color: var(--primary-green); margin: 0 0 0.5rem 0;">🎯 Dəqiqlik</h5>
+                  <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">10 metr məkan təhlili dəqiqliyi</p>
+                </div>
+                <div style="background: var(--bg-green); padding: 1rem; border-radius: 8px; flex: 1; min-width: 200px; max-width: 300px;">
+                  <h5 style="color: var(--primary-green); margin: 0 0 0.5rem 0;">🔄 Yenilənmə</h5>
+                  <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">Hər 5 gündə bir yenilənən məlumatlar</p>
+                </div>
+                <div style="background: var(--bg-green); padding: 1rem; border-radius: 8px; flex: 1; min-width: 200px; max-width: 300px;">
+                  <h5 style="color: var(--primary-green); margin: 0 0 0.5rem 0;">📊 Analiz</h5>
+                  <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">6+ vegetasiya indeksi analizi</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <script>
+        // Initialize chat functionality
+        function initializeChat() {
+          const chatForm = document.getElementById('chat-form');
+          const chatInput = document.getElementById('chat-input');
+          const chatArea = document.getElementById('chat-area');
+          const typingIndicator = document.getElementById('typing-indicator');
+          const sendButton = document.getElementById('send-btn');
+          let isProcessing = false;
+          
+          // Input validation
+          function validateInput(input) {
+            // Remove any potentially harmful characters
+            input = input.replace(/[<>]/g, '');
+            // Ensure message isn't too long
+            if (input.length > 500) {
+              throw new Error('Mesaj həddindən artıq uzundur (maksimum 500 simvol)');
+            }
+            // Ensure message isn't empty or just whitespace
+            if (!input.trim()) {
+              throw new Error('Zəhmət olmasa, mesaj daxil edin');
+            }
+            return input.trim();
+          }
+
+          // Rate limiting
+          const messageRateLimit = {
+            messages: [],
+            maxMessages: 5,
+            timeWindow: 10000, // 10 seconds
+            
+            checkLimit() {
+              const now = Date.now();
+              // Remove old messages outside the time window
+              this.messages = this.messages.filter(time => now - time < this.timeWindow);
+              
+              if (this.messages.length >= this.maxMessages) {
+                throw new Error('Çox sürətli mesaj göndərirsiniz. Zəhmət olmasa bir az gözləyin.');
+              }
+              
+              this.messages.push(now);
+            }
+          };
+
+          chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (isProcessing) return;
+            
+            try {
+              isProcessing = true;
+              sendButton.disabled = true;
+              
+              // Validate input
+              const message = validateInput(chatInput.value);
+              
+              // Check rate limit
+              messageRateLimit.checkLimit();
+              
+              // Add user message to chat with timestamp
+              const timestamp = new Date().toLocaleTimeString('az-AZ');
+              addMessage('user', message, timestamp);
+              chatInput.value = '';
+              
+              // Show typing indicator
+              typingIndicator.classList.add('show');
+              
+              // Set up timeout for response
+              const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Sorğu vaxtı bitdi. Zəhmət olmasa yenidən cəhd edin.')), 30000);
+              });
+              
+              // Race between actual response and timeout
+              const response = await Promise.race([
+                getAIResponse(message),
+                timeoutPromise
+              ]);
+              
+              addMessage('assistant', response, new Date().toLocaleTimeString('az-AZ'));
+              
+            } catch (error) {
+              console.error('Chat error:', error);
+              addMessage('assistant', `Xəta: ${error.message || 'Naməlum xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.'}`, new Date().toLocaleTimeString('az-AZ'));
+            } finally {
+              isProcessing = false;
+              sendButton.disabled = false;
+              typingIndicator.classList.remove('show');
+            }
+          });
+          
+          // Initialize virtual scroller
+          const virtualScroller = new VirtualScroller(chatArea);
+          const messages = [];
+
+          function addMessage(type, content, timestamp) {
+            // Create new message object
+            const message = {
+              type,
+              content,
+              timestamp,
+              id: Date.now() + Math.random()
+            };
+            
+            // Add to messages array
+            messages.push(message);
+            
+            // Save to local storage
+            ChatStorage.saveMessage(message);
+            
+            // Update virtual scroller
+            virtualScroller.setItems(messages);
+            
+            // Scroll to bottom
+            requestAnimationFrame(() => {
+              chatArea.scrollTo({
+                top: chatArea.scrollHeight,
+                behavior: 'smooth'
+              });
+            });
+          }
+          
+          async function getAIResponse(message) {
+            // Check cache first
+            const cachedResponse = ChatStorage.getCachedResponse(message);
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+
+            // Enhanced demo mode with more context-aware responses
+            const demoResponses = {
+              'salam': 'Salam! Sizə necə kömək edə bilərəm?',
+              'necəsən': 'Yaxşıyam, təşəkkür edirəm. Sizə necə kömək edə bilərəm?',
+              'default': 'Bağışlayın, hazırda demo rejimdəyəm və məhdud cavablar verə bilirəm. Backend inteqrasiyası tamamlandıqdan sonra bütün suallarınızı tam şəkildə cavablandıra biləcəyəm.'
+            };
+            
+            // Add some randomization to response time (1-2 seconds)
+            const delay = Math.random() * 1000 + 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            // Process message to determine best response
+            const lowercaseMsg = message.toLowerCase();
+            let response;
+
+            if (lowercaseMsg.includes('ndvi') || lowercaseMsg.includes('ndwi')) {
+              response = 'Bağışlayın, hazırda demo rejimində olduğumuz üçün vegetasiya indekslərini analiz edə bilmirəm. Backend inteqrasiyası tamamlandıqdan sonra tam analiz təqdim edə biləcəyəm.';
+            } else {
+              response = demoResponses[lowercaseMsg] || demoResponses.default;
+            }
+
+            // Cache the response
+            ChatStorage.cacheResponse(message, response);
+            
+            return response;
+          }
+
+          // Load chat history when initializing
+          function loadChatHistory() {
+            const history = ChatStorage.getChatHistory();
+            history.forEach(msg => {
+              addMessage(msg.type, msg.content, new Date(msg.timestamp).toLocaleTimeString('az-AZ'));
+            });
+          }
+
+          // Load chat history on initialization
+          loadChatHistory();
+        }
+
+        // Function to fill question into input
+        function fillQuestion(question) {
+          const chatInput = document.getElementById('chat-input');
+          chatInput.value = question;
+          chatInput.focus();
+        }
+
+        // Initialize chat when page loads
+        document.addEventListener('DOMContentLoaded', initializeChat);
+      </script>
+    </body>
+    </html>
